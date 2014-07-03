@@ -1,7 +1,7 @@
 Linkedin people search
 ======================
 
-This automated script searches possible matches(3) of names with their current work.
+This automated script searches possible matches people in likedin searching them by name.
 It relays on watir, so it will use a real browser.
 Unfortunately the api has been vetted [1], so this is a really slow alternative to the API.
 
@@ -10,19 +10,27 @@ Unfortunately the api has been vetted [1], so this is a really slow alternative 
 ## Installing
 
 ```bash
-$ git clone https://github.com/bonzofenix/linkedin-people
-$ cd linkedin-people 
-$ bundle
+  $ git clone https://github.com/bonzofenix/linkedin-people
+  $ cd linkedin-people 
+  $ bundle
 ```
 
 ## running
 
+with a file with names:
+```csv
+Mark Anthony, other information
+Chris Cornell, other information
+```
+you can run:
 ```ruby
-$ ruby linkedin.rb USERNAME PASSWORD > result.csv
+  $ ruby linkedin.rb USERNAME PASSWORD FILEPATH > result.csv
 ```
 
 your result should be something like this:
 
-name, person1-job-description, person1-company, person2-job-description, person2-company, person3-job-description, person3-company
+```csv
+name_person_1, result1-job-description, result1-company, result2-job-description, result2-company, result3-job-description, result3-company
+```
 
 
