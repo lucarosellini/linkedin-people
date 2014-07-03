@@ -23,7 +23,7 @@ Mark Anthony, other information
 Chris Cornell, other information
 ```
 you can run:
-```ruby
+```bash
   $ ruby linkedin.rb USERNAME PASSWORD FILEPATH > result.csv
 ```
 
