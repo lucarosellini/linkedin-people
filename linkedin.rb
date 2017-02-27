@@ -1,9 +1,9 @@
 require 'rubygems'
-require 'debugger'
+require 'byebug'
 require 'watir-webdriver'
 require 'csv'
 puts "ERROR in recevived args: ruby linkedin.rb USERNAME PASSWORD FILE_WITH_NAMES" unless ARGV.size == 3
-Watir.default_timeout = 180
+Watir.default_timeout = 30
 user, password, filename = *ARGV
 # puts 'Linkedin username/email (bonzofenix@gmail.com):'
 # user = gets.strip
@@ -11,34 +11,49 @@ user, password, filename = *ARGV
 # puts 'Linkedin password (xxxxxx):'
 # password = gets.strip
 client = Selenium::WebDriver::Remote::Http::Default.new
-client.timeout = 180
+client.open_timeout = 30
 browser = Watir::Browser.new :chrome, http_client: client
-browser.driver.manage.timeouts.implicit_wait = 60
+browser.driver.manage.timeouts.implicit_wait = 30
 browser.goto 'https://www.linkedin.com'
 puts browser.title
-browser.text_field(:id => 'session_key-login').set user
-browser.text_field(:id => 'session_password-login').set password
+browser.text_field(:id => 'login-email').set user
+browser.text_field(:id => 'login-password').set password
 sleep 1
-browser.button(:value => 'Sign In').click
+browser.button(:id => 'login-submit').click
 
 #search process
 CSV.foreach(filename, { :col_sep => ';' }) do |row|
   name = row.first
   res = [name]
-  browser.text_field(:id => 'main-search-box').wait_until_present
-  browser.text_field(:id => 'main-search-box').set name
-  browser.button(:class => 'search-button').click
+  browser.text_field(:class => 'ember-text-field').wait_until_present
+  browser.text_field(:class => 'ember-text-field').set name
+  browser.text_field(:class => 'ember-text-field').send_keys(:return)
+
+  puts '>> ' + name
+
   unless browser.text.include? '0 results'
-    browser.ol(id: 'results').lis(:class  => 'people')[0..2].each_with_index do |l,i|
-      browser.div(id: "voltron-overlay").wait_while_present
-      browser.ol(id: 'results').lis(:class  => 'people')[i].a.click
-      if !browser.text.include? 'available only to premium' and browser.div(id: 'background-experience').exists?
-        res << browser.div(id: 'background-experience').divs[0].header.text
+
+      browser.div(:class => 'search-results__cluster-content').wait_until_present
+      browser.div(:class => 'search-results__cluster-content').ul.lis(:class  => 'search-result').each_with_index do |l,i|
+        puts '>> Profile: ' + i.to_s 
+
+        browser.div(:class => 'search-results__cluster-content').ul.lis(:class  => 'search-result')[i].div(:class => 'search-result__wrapper').div(:class => 'search-result__info').a.click
+
+        browser.section(:class => 'experience-section').wait_until_present
+        if !browser.text.include? 'available only to premium' and browser.section(:class => 'experience-section').exists?
+
+          puts '>>>> Experiencias'
+
+          browser.section(:class => 'experience-section').ul(:class => 'section-info').lis(:class => 'position-entity').each_with_index do |r,j|
+            if browser.section(:class => 'experience-section').ul(:class => 'section-info').lis(:class => 'position-entity')[j].h3.exists?
+              puts 'Experiencia: ' + j.to_s + ', ' + browser.section(:class => 'experience-section').ul(:class => 'section-info').lis(:class => 'position-entity')[j].h3.text
+            end
+          end 
+        end
+        browser.back
       end
-      browser.back
-    end
   end
-  puts res.join(';').gsub("\n", ";")
+  
 end
 
 browser.close
